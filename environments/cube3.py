@@ -212,8 +212,9 @@ class Cube3(Environment):
         
         else: # is a subroutine
             steps = self.subroutines[action_str]
+            states_next_np = states_np
             for step in steps:
-                states_next_np, transition_costs = self._move_np(states_np, step)
+                states_next_np, transition_costs = self._move_np(states_next_np, step)
 
         return states_next_np, transition_costs
 
