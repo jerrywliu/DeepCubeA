@@ -29,6 +29,7 @@ class Cube3(Environment):
         super().__init__()
         self.dtype = np.uint8
         self.cube_len = 3
+        self.num_basic_moves = 12
 
         # solved state
         self.goal_colors: np.ndarray = np.arange(
@@ -86,8 +87,6 @@ class Cube3(Environment):
 
         self.rotate_idxs_new, self.rotate_idxs_old = self._compute_rotation_idxs(
             self.cube_len, self.moves)
-
-
 
     def next_state(self, states: List[Cube3State], action: int) -> Tuple[List[Cube3State], List[float]]:
         states_np = np.stack([x.colors for x in states], axis=0)
@@ -205,10 +204,16 @@ class Cube3(Environment):
     def _move_np(self, states_np: np.ndarray, action: int):
         action_str: str = self.moves[action]
 
-        states_next_np: np.ndarray = states_np.copy()
-        states_next_np[:, self.rotate_idxs_new[action_str]] = states_np[:, self.rotate_idxs_old[action_str]]
+        if action < self.num_basic_moves: # is a basic move
+            states_next_np: np.ndarray = states_np.copy()
+            states_next_np[:, self.rotate_idxs_new[action_str]] = states_np[:, self.rotate_idxs_old[action_str]]
 
-        transition_costs: List[float] = [1.0 for _ in range(states_np.shape[0])] #TODO update transition costs
+            transition_costs: List[float] = [1.0 for _ in range(states_np.shape[0])] #TODO update transition costs
+        
+        else: # is a subroutine
+            steps = self.subroutines[action_str]
+            for step in steps:
+                states_np, transition_costs = self._move_np(states_np, step)
 
         return states_next_np, transition_costs
 
@@ -227,7 +232,7 @@ class Cube3(Environment):
         rotate_idxs_new: Dict[str, np.ndarray] = dict()
         rotate_idxs_old: Dict[str, np.ndarray] = dict()
 
-        for move in moves[:12]: # edited
+        for move in moves[:self.num_basic_moves]: # edited
             f: str = move[0]
             sign: int = int(move[1:])
 
