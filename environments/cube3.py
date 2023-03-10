@@ -397,13 +397,13 @@ class Cube3(Environment):
         }
         return faces[move]
     
-    def _invert_move(self, move):
+    def _invert_move(self, move_str):
         """
-        Invert a move e.g. "U1" -> "U-1"
-        :param move: Move to invert
+        Invert a move_str e.g. "U1" -> "U-1"
+        :param move_str: Move to invert
         :return: Inverted move
         """
-        if len(move) == 2:
-            return move[:-1] + "-1"
+        if len(move_str) == 2:
+            return move_str[:-1] + "-1"
         else:
-            return move[:-2] + "1"
+            return move_str[:-2] + "1"
