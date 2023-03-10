@@ -25,25 +25,16 @@ class Cube3State(State):
 
 
 class Cube3(Environment):
-    # Moves are in pairs: (move, -1) followed by (move, 1).
-    moves: List[str] = ["%s%i" % (f, n) for f in ['U', 'D', 'L', 'R', 'B', 'F'] for n in [-1, 1]]
-
     def __init__(self):
         super().__init__()
         self.dtype = np.uint8
         self.cube_len = 3
 
         # solved state
-        self.goal_colors: np.ndarray = np.arange(0, (self.cube_len ** 2) * 6, 1, dtype=self.dtype)
+        self.goal_colors: np.ndarray = np.arange(
+            0, (self.cube_len ** 2) * 6, 1, dtype=self.dtype)
 
-        # get idxs changed for moves
-        self.rotate_idxs_new: Dict[str, np.ndarray]
-        self.rotate_idxs_old: Dict[str, np.ndarray]
-
-        self.adj_faces: Dict[int, np.ndarray]
-        self._get_adj()
-
-        self.rotate_idxs_new, self.rotate_idxs_old = self._compute_rotation_idxs(self.cube_len, self.moves)
+        # TODO: add intermediate states
 
         # Dictionaries for corners and edges with their corresponding tiles:
         self.corner_tiles = {
@@ -70,6 +61,33 @@ class Cube3(Environment):
             "GO": [34,37],
             "GR": [28,52],
         }
+
+        self.basic_moves = ['U', 'D', 'L', 'R', 'B', 'F']
+        # TODO: add more subroutines
+        # Dictionaries for subroutine decompositions
+        self.subroutines = # TODO: plug the function output here @terry
+        #{
+        # "<subroutineName>_<face>_<index>_<1/-1>": ["F1", "F1", "U1", "L1", "R-1", "F1", "F1", "L-1", "R1", "U1", "F1", "F1"],
+        # ...
+        #}
+
+        # Moves are in pairs: (move, -1) followed by (move, 1).
+        # 12 basic actions
+        self.moves: List[str] = ["%s%i" % (f, n) for f in self.basic_moves for n in [-1, 1]]
+        # add subroutines with orientation
+        self.moves += [sr for sr in self.subroutines]
+
+        # get idxs changed for moves
+        self.rotate_idxs_new: Dict[str, np.ndarray]
+        self.rotate_idxs_old: Dict[str, np.ndarray]
+
+        self.adj_faces: Dict[int, np.ndarray]
+        self._get_adj()
+
+        self.rotate_idxs_new, self.rotate_idxs_old = self._compute_rotation_idxs(
+            self.cube_len, self.moves)
+
+
 
     def next_state(self, states: List[Cube3State], action: int) -> Tuple[List[Cube3State], List[float]]:
         states_np = np.stack([x.colors for x in states], axis=0)
@@ -209,7 +227,7 @@ class Cube3(Environment):
         rotate_idxs_new: Dict[str, np.ndarray] = dict()
         rotate_idxs_old: Dict[str, np.ndarray] = dict()
 
-        for move in moves:
+        for move in moves[:12]: # edited
             f: str = move[0]
             sign: int = int(move[1:])
 
