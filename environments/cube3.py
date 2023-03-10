@@ -64,11 +64,15 @@ class Cube3(Environment):
         }
 
         self.basic_moves = ['U', 'D', 'L', 'R', 'B', 'F']
-        # TODO: add more subroutines
-        # Dictionaries for subroutine decompositions
-        self.subroutines = # TODO: plug the function output here @terry
+        algs = { 
+            "edge": ["F1", "F1", "U1", "L1", "R-1", "F1", "F1", "L-1", "R1", "U1", "F1", "F1"],
+            "corner": ["R1", "U-1", "L-1", "U1", "R-1", "U-1", "L1", "U1"],
+        }
+        # Dictionaries for subroutine expansions
+        self.subroutines = self._expand_subroutines(algs) 
         #{
         # "<subroutineName>_<face>_<index>_<1/-1>": ["F1", "F1", "U1", "L1", "R-1", "F1", "F1", "L-1", "R1", "U1", "F1", "F1"],
+        # edge_f0_r0_1: ["F1", "F1", "U1", "L1", "R-1", "F1", "F1", "L-1", "R1", "U1", "F1", "F1"],
         # ...
         #}
 
@@ -302,3 +306,104 @@ class Cube3(Environment):
                     rotate_idxs_old[move] = np.concatenate((rotate_idxs_old[move], [flat_idx_old]))
 
         return rotate_idxs_new, rotate_idxs_old
+    
+    def _expand_subroutines(self, algs):
+        """
+        Take in a dictionary of algorithms and expand them across 24 cube orientations.
+        :param algs: Dictionary of algorithms to expand
+            - name_f0_r0_1: [move1, move2, ...]
+            - name face rotation
+        :return: Expanded dictionary of algorithms
+        """
+        subroutines = {} # Dictionary of subroutines
+        curr_subroutine = {} # Dictionary for current subroutine
+        rotations = 4
+        faces = 6
+
+        # Time complexity: O(alg * alg_length * 48)
+
+        # Go through each algorithm
+        for alg, moves in algs.items():
+            for move_str in moves:
+                # Get all rotations and faces
+                rotated_moves = self._rotate_move(move_str) # rotations
+                for j, rot_move in enumerate(rotated_moves):
+                    faces = self._face_move(rot_move) # faces
+                    for i, face in enumerate(faces):
+                        # Add to current subroutine
+                        alg_name = f"{alg}_f{i}_r{j}_1"
+                        if alg_name in curr_subroutine:
+                            curr_subroutine[alg_name].append(face)
+                        else:
+                            curr_subroutine[alg_name] = [face]
+            
+            # Get the inverse of all subroutines
+            for key, value in curr_subroutine.items():
+                inv_routine = key[:-1] + "-1"
+                # Inverse the moves, add to final subroutine dictionary
+                subroutines[inv_routine] = [self._invert_move(move) for move in value]
+            
+            # Add current subroutines
+            subroutines.update(curr_subroutine)
+        
+        return subroutines
+
+    def _rotate_move(self, move):
+        """
+        Map single move to all 4 possible z-axis rotations.
+        :param move: Move to rotate
+            - U, R, D, L, F, B: Face turns
+            - in 90 degree CW increments
+        :return: List of rotated moves
+        """
+        rotations = {
+            "U1" : ["U1", "R1", "D1", "L1"],
+            "U-1" : ["U-1", "R-1", "D-1", "L-1"],
+            "R1" : ["R1", "D1", "L1", "U1"],
+            "R-1" : ["R-1", "D-1", "L-1", "U-1"],
+            "D1" : ["D1", "L1", "U1", "R1"],
+            "D-1" : ["D-1", "L-1", "U-1", "R-1"],
+            "L1" : ["L1", "U1", "R1", "D1"],
+            "L-1" : ["L-1", "U-1", "R-1", "D-1"],
+            # These are the same
+            "F1" : ["F1", "F1", "F1", "F1"],
+            "F-1" : ["F-1", "F-1", "F-1", "F-1"],
+            "B1" : ["B1", "B1", "B1", "B1"],
+            "B-1" : ["B-1", "B-1", "B-1", "B-1"]
+        }
+        return rotations[move]
+    
+    def _face_move(self, move):
+        """
+        Map single move to all 6 faces.
+        :param move: Move to rotate
+            - U, D, L, R, F, B: Face turns
+            - Face orientation across y axis rotations 90 CW, then top and bottom
+        :return: List of rotated moves
+        """
+        faces = {
+            "U1" : ["U1", "U1", "U1", "U1", "F1", "B1"],
+            "U-1" : ["U-1", "U-1", "U-1", "U-1", "F-1", "B-1"],
+            "R1" : ["R1", "F1", "L1", "B1", "R1", "R1"],
+            "R-1" : ["R-1", "F-1", "L-1", "B-1", "R-1", "R-1"],
+            "D1" : ["D1", "D1", "D1", "D1", "B1", "F1"],
+            "D-1" : ["D-1", "D-1", "D-1", "D-1", "B-1", "F-1"],
+            "L1" : ["L1", "F1", "R1", "B1", "L1", "L1"],
+            "L-1" : ["L-1", "F-1", "R-1", "B-1", "L-1", "L-1"],
+            "F1" : ["F1", "R1", "B1", "L1", "D1", "U1"],
+            "F-1" : ["F-1", "R-1", "B-1", "L-1", "D-1", "U-1"],
+            "B1" : ["B1", "L1", "F1", "R1", "U1", "D1"],
+            "B-1" : ["B-1", "L-1", "F-1", "R-1", "U-1", "D-1"]
+        }
+        return faces[move]
+    
+    def _invert_move(self, move):
+        """
+        Invert a move e.g. "U1" -> "U-1"
+        :param move: Move to invert
+        :return: Inverted move
+        """
+        if len(move) == 2:
+            return move[:-1] + "-1"
+        else:
+            return move[:-2] + "1"
