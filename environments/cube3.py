@@ -209,16 +209,23 @@ class Cube3(Environment):
         action_str: str = self.moves[action]
 
         if action < self.num_basic_moves: # is a basic move
-            states_next_np: np.ndarray = states_np.copy()
-            states_next_np[:, self.rotate_idxs_new[action_str]] = states_np[:, self.rotate_idxs_old[action_str]]
-
-            transition_costs: List[float] = [1.0 for _ in range(states_np.shape[0])] #TODO update transition costs
-        
+            states_next_np, transition_costs = self._move_np_with_name(states_np, action_str)
         else: # is a subroutine
             steps = self.subroutines[action_str]
-            states_next_np = states_np
+            states_next_np = states_np.copy()
             for step in steps:
-                states_next_np, transition_costs = self._move_np(states_next_np, step)
+                states_next_np, transition_costs = self._move_np_with_name(states_next_np, step)
+
+        return states_next_np, transition_costs
+    
+    def _move_np_with_name(self, states_np: np.ndarray, action_str: str):
+        """
+        Used by _move_np to get next state with action as a string.
+        See _move_np for usage details.
+        """
+        states_next_np: np.ndarray = states_np.copy()
+        states_next_np[:, self.rotate_idxs_new[action_str]] = states_np[:, self.rotate_idxs_old[action_str]]
+        transition_costs: List[float] = [1.0 for _ in range(states_np.shape[0])] #TODO update transition costs
 
         return states_next_np, transition_costs
 
