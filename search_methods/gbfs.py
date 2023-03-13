@@ -9,16 +9,16 @@ import torch
 
 class Instance:
 
-    def __init__(self, state: State, eps: float):
+    def __init__(self, state: State, eps: np.float32):
         self.curr_state: State = state
         self.is_solved: bool = False
         self.num_steps: int = 0
-        self.trajs: List[Tuple[State, float]] = []
+        self.trajs: List[Tuple[State, np.float32]] = []
         self.seen_states: Set[State] = set()
 
         self.eps = eps
 
-    def add_to_traj(self, state: State, cost_to_go: float):
+    def add_to_traj(self, state: State, cost_to_go: np.float32):
         self.trajs.append((state, cost_to_go))
         self.seen_states.add(state)
 
@@ -28,7 +28,7 @@ class Instance:
 
 
 class GBFS:
-    def __init__(self, states: List[State], env: Environment, eps: Optional[List[float]] = None):
+    def __init__(self, states: List[State], env: Environment, eps: Optional[List[np.float32]] = None):
         self.curr_states: List[State] = states
         self.env: Environment = env
 
@@ -47,8 +47,8 @@ class GBFS:
         # take a step for unsolved states
         self._move(heuristic_fn)
 
-    def get_trajs(self) -> List[List[Tuple[State, float]]]:
-        trajs_all: List[List[Tuple[State, float]]] = []
+    def get_trajs(self) -> List[List[Tuple[State, np.float32]]]:
+        trajs_all: List[List[Tuple[State, np.float32]]] = []
         for instance in self.instances:
             trajs_all.append(instance.trajs)
 
@@ -101,7 +101,7 @@ class GBFS:
             # add state to trajectory
             instance: Instance = instances[idx]
             state: State = states[idx]
-            ctg_backup: float = ctg_backups[idx]
+            ctg_backup: np.float32 = ctg_backups[idx]
 
             instance.add_to_traj(state, ctg_backup)
 
@@ -127,7 +127,7 @@ class GBFS:
 def gbfs_test(num_states: int, back_max: int, env: Environment, heuristic_fn: Callable,
               max_solve_steps: Optional[int] = None):
     # get data
-    back_steps: List[int] = list(np.linspace(0, back_max, 30, dtype=np.int))
+    back_steps: List[int] = list(np.linspace(0, back_max, 30, dtype=int))
     num_states_per_back_step: List[int] = misc_utils.split_evenly(num_states, len(back_steps))
 
     states: List[State] = []
@@ -168,7 +168,7 @@ def gbfs_test(num_states: int, back_max: int, env: Environment, heuristic_fn: Ca
         state_ctg: np.ndarray = state_ctg_all[step_idxs]
 
         # Get stats
-        per_solved = 100 * float(sum(is_solved)) / float(len(is_solved))
+        per_solved = 100 * np.float32(sum(is_solved)) / np.float32(len(is_solved))
         avg_solve_steps = 0.0
         if per_solved > 0.0:
             avg_solve_steps = np.mean(num_steps[is_solved])
@@ -176,8 +176,8 @@ def gbfs_test(num_states: int, back_max: int, env: Environment, heuristic_fn: Ca
         # Print results
         print("Back Steps: %i, %%Solved: %.2f, avgSolveSteps: %.2f, CTG Mean(Std/Min/Max): %.2f("
               "%.2f/%.2f/%.2f)" % (
-                  back_step_test, per_solved, avg_solve_steps, float(np.mean(state_ctg)),
-                  float(np.std(state_ctg)), np.min(state_ctg),
+                  back_step_test, per_solved, avg_solve_steps, np.float32(np.mean(state_ctg)),
+                  np.float32(np.std(state_ctg)), np.min(state_ctg),
                   np.max(state_ctg)))
 
 

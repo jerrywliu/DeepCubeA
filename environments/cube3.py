@@ -92,7 +92,7 @@ class Cube3(Environment):
         self.rotate_idxs_new, self.rotate_idxs_old = self._compute_rotation_idxs(
             self.cube_len, self.moves)
 
-    def next_state(self, states: List[Cube3State], action: int) -> Tuple[List[Cube3State], List[float]]:
+    def next_state(self, states: List[Cube3State], action: int) -> Tuple[List[Cube3State], List[np.float32]]:
         states_np = np.stack([x.colors for x in states], axis=0)
         states_next_np, transition_costs = self._move_np(states_np, action)
 
@@ -191,7 +191,7 @@ class Cube3(Environment):
         for move_idx in range(num_env_moves):
             # next state
             states_next_np: np.ndarray
-            tc_move: List[float]
+            tc_move: List[np.float32]
             states_next_np, tc_move = self._move_np(states_np, move_idx)
 
             # transition cost
@@ -225,7 +225,7 @@ class Cube3(Environment):
         """
         states_next_np: np.ndarray = states_np.copy()
         states_next_np[:, self.rotate_idxs_new[action_str]] = states_np[:, self.rotate_idxs_old[action_str]]
-        transition_costs: List[float] = [1.0 for _ in range(states_np.shape[0])] #TODO update transition costs
+        transition_costs: List[np.float32] = [1.0 for _ in range(states_np.shape[0])] #TODO update transition costs
 
         return states_next_np, transition_costs
 
@@ -251,7 +251,7 @@ class Cube3(Environment):
             rotate_idxs_new[move] = np.array([], dtype=int)
             rotate_idxs_old[move] = np.array([], dtype=int)
 
-            colors = np.zeros((6, cube_len, cube_len), dtype=np.int64)
+            colors = np.zeros((6, cube_len, cube_len), dtype=int)
             colors_new = np.copy(colors)
 
             # WHITE:0, YELLOW:1, BLUE:2, GREEN:3, ORANGE: 4, RED: 5

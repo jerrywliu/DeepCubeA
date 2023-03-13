@@ -19,20 +19,20 @@ class Node:
     __slots__ = ['state', 'path_cost', 'heuristic', 'cost', 'is_solved', 'parent_move', 'parent', 'transition_costs',
                  'children', 'bellman']
 
-    def __init__(self, state: State, path_cost: float, is_solved: bool,
+    def __init__(self, state: State, path_cost: np.float32, is_solved: bool,
                  parent_move: Optional[int], parent):
         self.state: State = state
-        self.path_cost: float = path_cost
-        self.heuristic: Optional[float] = None
-        self.cost: Optional[float] = None
+        self.path_cost: np.float32 = path_cost
+        self.heuristic: Optional[np.float32] = None
+        self.cost: Optional[np.float32] = None
         self.is_solved: bool = is_solved
         self.parent_move: Optional[int] = parent_move
         self.parent: Optional[Node] = parent
 
-        self.transition_costs: List[float] = []
+        self.transition_costs: List[np.float32] = []
         self.children: List[Node] = []
 
-        self.bellman: float = np.inf
+        self.bellman: np.float32 = np.inf
 
     def compute_bellman(self):
         if self.is_solved:
@@ -44,7 +44,7 @@ class Node:
                 self.bellman = min(self.bellman, tc + node_c.heuristic)
 
 
-OpenSetElem = Tuple[float, int, Node]
+OpenSetElem = Tuple[np.float32, int, Node]
 
 
 class Instance:
@@ -52,7 +52,7 @@ class Instance:
     def __init__(self, root_node: Node):
         self.open_set: List[OpenSetElem] = []
         self.heappush_count: int = 0
-        self.closed_dict: Dict[State, float] = dict()
+        self.closed_dict: Dict[State, np.float32] = dict()
         self.popped_nodes: List[Node] = []
         self.goal_nodes: List[Node] = []
         self.num_nodes_generated: int = 0
@@ -79,7 +79,7 @@ class Instance:
         nodes_not_in_closed: List[Node] = []
 
         for node in nodes:
-            path_cost_prev: Optional[float] = self.closed_dict.get(node.state)
+            path_cost_prev: Optional[np.float32] = self.closed_dict.get(node.state)
             if path_cost_prev is None:
                 nodes_not_in_closed.append(node)
                 self.closed_dict[node.state] = node.path_cost
@@ -112,7 +112,7 @@ def expand_nodes(instances: List[Instance], popped_nodes_all: List[List[Node]], 
 
     states_c_by_node, tcs_np = env.expand(states)
 
-    tcs_by_node: List[List[float]] = [list(x) for x in tcs_np]
+    tcs_by_node: List[List[np.float32]] = [list(x) for x in tcs_np]
 
     # Get is_solved on all states at once (for speed)
     states_c: List[State]
@@ -123,13 +123,13 @@ def expand_nodes(instances: List[Instance], popped_nodes_all: List[List[Node]], 
 
     # Update path costs for all states at once (for speed)
     parent_path_costs = np.expand_dims(np.array([node.path_cost for node in popped_nodes_flat]), 1)
-    path_costs_c: List[float] = (parent_path_costs + np.array(tcs_by_node)).flatten().tolist()
+    path_costs_c: List[np.float32] = (parent_path_costs + np.array(tcs_by_node)).flatten().tolist()
 
-    path_costs_c_by_node: List[List[float]] = misc_utils.unflatten(path_costs_c, split_idxs_c)
+    path_costs_c_by_node: List[List[np.float32]] = misc_utils.unflatten(path_costs_c, split_idxs_c)
 
     # Reshape lists
-    tcs_by_inst_node: List[List[List[float]]] = misc_utils.unflatten(tcs_by_node, split_idxs)
-    patch_costs_c_by_inst_node: List[List[List[float]]] = misc_utils.unflatten(path_costs_c_by_node,
+    tcs_by_inst_node: List[List[List[np.float32]]] = misc_utils.unflatten(tcs_by_node, split_idxs)
+    patch_costs_c_by_inst_node: List[List[List[np.float32]]] = misc_utils.unflatten(path_costs_c_by_node,
                                                                                split_idxs)
     states_c_by_inst_node: List[List[List[State]]] = misc_utils.unflatten(states_c_by_node, split_idxs)
     is_solved_c_by_inst_node: List[List[List[bool]]] = misc_utils.unflatten(is_solved_c_by_node, split_idxs)
@@ -140,14 +140,14 @@ def expand_nodes(instances: List[Instance], popped_nodes_all: List[List[Node]], 
     for inst_idx, instance in enumerate(instances):
         nodes_c_by_inst.append([])
         parent_nodes: List[Node] = popped_nodes_all[inst_idx]
-        tcs_by_node: List[List[float]] = tcs_by_inst_node[inst_idx]
-        path_costs_c_by_node: List[List[float]] = patch_costs_c_by_inst_node[inst_idx]
+        tcs_by_node: List[List[np.float32]] = tcs_by_inst_node[inst_idx]
+        path_costs_c_by_node: List[List[np.float32]] = patch_costs_c_by_inst_node[inst_idx]
         states_c_by_node: List[List[State]] = states_c_by_inst_node[inst_idx]
 
         is_solved_c_by_node: List[List[bool]] = is_solved_c_by_inst_node[inst_idx]
 
         parent_node: Node
-        tcs_node: List[float]
+        tcs_node: List[np.float32]
         states_c: List[State]
         str_reps_c: List[str]
         for parent_node, tcs_node, path_costs_c, states_c, is_solved_c in zip(parent_nodes, tcs_by_node,
@@ -155,7 +155,7 @@ def expand_nodes(instances: List[Instance], popped_nodes_all: List[List[Node]], 
                                                                               is_solved_c_by_node):
             state: State
             for move_idx, state in enumerate(states_c):
-                path_cost: float = path_costs_c[move_idx]
+                path_cost: np.float32 = path_costs_c[move_idx]
                 is_solved: bool = is_solved_c[move_idx]
                 node_c: Node = Node(state, path_cost, is_solved, move_idx, parent_node)
 
@@ -178,7 +178,7 @@ def remove_in_closed(instances: List[Instance], nodes_c_all: List[List[Node]]) -
 
 
 def add_heuristic_and_cost(nodes: List[Node], heuristic_fn: Callable,
-                           weights: List[float]) -> Tuple[np.ndarray, np.ndarray]:
+                           weights: List[np.float32]) -> Tuple[np.ndarray, np.ndarray]:
     # flatten nodes
     nodes: List[Node]
 
@@ -210,7 +210,7 @@ def add_to_open(instances: List[Instance], nodes: List[List[Node]]) -> None:
         instance.push_to_open(nodes_inst)
 
 
-def get_path(node: Node) -> Tuple[List[State], List[int], float]:
+def get_path(node: Node) -> Tuple[List[State], List[int], np.float32]:
     path: List[State] = []
     moves: List[int] = []
 
@@ -231,12 +231,12 @@ def get_path(node: Node) -> Tuple[List[State], List[int], float]:
 
 class AStar:
 
-    def __init__(self, states: List[State], env: Environment, heuristic_fn: Callable, weights: List[float]):
+    def __init__(self, states: List[State], env: Environment, heuristic_fn: Callable, weights: List[np.float32]):
         self.env: Environment = env
-        self.weights: List[float] = weights
+        self.weights: List[np.float32] = weights
         self.step_num: int = 0
 
-        self.timings: Dict[str, float] = {"pop": 0.0, "expand": 0.0, "check": 0.0, "heur": 0.0,
+        self.timings: Dict[str, np.float32] = {"pop": 0.0, "expand": 0.0, "check": 0.0, "heur": 0.0,
                                           "add": 0.0, "itr": 0.0}
 
         # compute starting costs
@@ -326,7 +326,7 @@ class AStar:
 
     def get_goal_node_smallest_path_cost(self, inst_idx) -> Node:
         goal_nodes: List[Node] = self.get_goal_nodes(inst_idx)
-        path_costs: List[float] = [node.path_cost for node in goal_nodes]
+        path_costs: List[np.float32] = [node.path_cost for node in goal_nodes]
 
         goal_node: Node = goal_nodes[int(np.argmin(path_costs))]
 
@@ -347,7 +347,7 @@ def main():
     parser.add_argument('--model_dir', type=str, required=True, help="Directory of nnet model")
     parser.add_argument('--env', type=str, required=True, help="Environment: cube3, 15-puzzle, 24-puzzle")
     parser.add_argument('--batch_size', type=int, default=1, help="Batch size for BWAS")
-    parser.add_argument('--weight', type=float, default=1.0, help="Weight of path cost")
+    parser.add_argument('--weight', type=np.float32, default=1.0, help="Weight of path cost")
     parser.add_argument('--language', type=str, default="python", help="python or cpp")
 
     parser.add_argument('--results_dir', type=str, required=True, help="Directory to save results")
@@ -424,7 +424,7 @@ def bwas_python(args, env: Environment, states: List[State]):
 
         path: List[State]
         soln: List[int]
-        path_cost: float
+        path_cost: np.float32
         num_nodes_gen_idx: int
         goal_node: Node = astar.get_goal_node_smallest_path_cost(0)
         path, soln, path_cost = get_path(goal_node)
@@ -529,12 +529,12 @@ def bwas_cpp(args, env: Environment, states: List[State], results_file: str):
         moves = [int(x) for x in lines[-5].split(" ")[:-1]]
         soln = [x for x in moves][::-1]
         num_nodes_gen_idx = int(lines[-3])
-        solve_time = float(lines[-1])
+        solve_time = np.float32(lines[-1])
 
         # record solution information
         path: List[State] = [state]
         next_state: State = state
-        transition_costs: List[float] = []
+        transition_costs: List[np.float32] = []
 
         for move in soln:
             next_states, tcs = env.next_state([next_state], move)
@@ -550,7 +550,7 @@ def bwas_cpp(args, env: Environment, states: List[State], results_file: str):
         times.append(solve_time)
         num_nodes_gen.append(num_nodes_gen_idx)
 
-        path_cost: float = sum(transition_costs)
+        path_cost: np.float32 = sum(transition_costs)
 
         # check soln
         assert search_utils.is_valid_soln(state, soln, env)
@@ -583,7 +583,7 @@ def cpp_listener(sock, args, env: Environment, state_dim: int, heur_fn_i_q, heur
             connection, client_address = sock.accept()
             data_rec = connection.recv(8)
 
-        num_bytes_recv = np.frombuffer(data_rec, dtype=np.int64)[0]
+        num_bytes_recv = np.frombuffer(data_rec, dtype=int)[0]
 
         num_bytes_seen = 0
         data_rec = b""

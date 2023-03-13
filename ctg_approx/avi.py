@@ -163,12 +163,12 @@ def load_nnet(nnet_dir: str, env: Environment) -> Tuple[nn.Module, int, int]:
     nnet_file: str = "%s/model_state_dict.pt" % nnet_dir
     if os.path.isfile(nnet_file):
         nnet = nnet_utils.load_nnet(nnet_file, env.get_nnet_model())
-        itr: int = pickle.load(open("%s/train_itr.pkl" % nnet_dir, "rb"))
-        update_num: int = pickle.load(open("%s/update_num.pkl" % nnet_dir, "rb"))
+        #itr: int = pickle.load(open("%s/train_itr.pkl" % nnet_dir, "rb"))
+        #update_num: int = pickle.load(open("%s/update_num.pkl" % nnet_dir, "rb"))
     else:
         nnet: nn.Module = env.get_nnet_model()
-        itr: int = 0
-        update_num: int = 0
+    itr: int = 0
+    update_num: int = 0
 
     return nnet, itr, update_num
 
