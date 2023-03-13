@@ -1,5 +1,5 @@
 .pyenv/
 */__pycache__/
 slurm*.out
-saved_models/cube3/*
-saved_models/cube3_subroutines/*
+#saved_models/cube3/*
+#saved_models/cube3_subroutines/*
