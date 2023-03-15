@@ -25,7 +25,7 @@ class Cube3State(State):
 
 
 class Cube3(Environment):
-    def __init__(self, intermediate_reward_name):
+    def __init__(self, intermediate_reward_name="uniform", add_actions=False):
         super().__init__()
         self.dtype = np.uint8
         self.cube_len = 3
@@ -71,7 +71,11 @@ class Cube3(Environment):
             "corner": ["R1", "U-1", "L-1", "U1", "R-1", "U-1", "L1", "U1"],
         }
         # Dictionaries for subroutine expansions
-        self.subroutines = self._expand_subroutines(algs) 
+        if add_actions:
+            self.subroutines = self._expand_subroutines(algs)
+        else:
+            self.subroutines = []
+
         #{
         # "<subroutineName>_<face>_<index>_<1/-1>": ["F1", "F1", "U1", "L1", "R-1", "F1", "F1", "L-1", "R1", "U1", "F1", "F1"],
         # edge_f0_r0_1: ["F1", "F1", "U1", "L1", "R-1", "F1", "F1", "L-1", "R1", "U1", "F1", "F1"],
@@ -279,7 +283,7 @@ class Cube3(Environment):
         if self.intermediate_reward_name == "uniform":
             # Transition cost is 1
             transition_costs: List[float] = [1.0]*states_np.shape[0]
-        elif self.intermediate_reward_name == "top1"
+        elif self.intermediate_reward_name == "top1":
             # Transition cost based on whether top is solved, trained 3/13
             transition_costs: np.ndarray = 1 + self.transition_costs_solvetop(states_next_np) - self.transition_costs_solvetop(states_np)
         else:
