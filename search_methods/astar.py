@@ -352,6 +352,7 @@ def main():
 
     parser.add_argument('--results_dir', type=str, required=True, help="Directory to save results")
     parser.add_argument('--start_idx', type=int, default=0, help="")
+    parser.add_argument("--end_idx", type=int, default=1000, help="")
     parser.add_argument('--nnet_batch_size', type=int, default=None, help="Set to control how many states per GPU are "
                                                                           "evaluated by the neural network at a time. "
                                                                           "Does not affect final results, "
@@ -373,7 +374,7 @@ def main():
 
     # get data
     input_data = pickle.load(open(args.states, "rb"))
-    states: List[State] = input_data['states'][args.start_idx:]
+    states: List[State] = input_data['states'][args.start_idx:args.end_idx]
 
     # environment
     env: Environment = env_utils.get_environment(args.env)
@@ -523,6 +524,7 @@ def bwas_cpp(args, env: Environment, states: List[State], results_file: str):
         lines = []
         for stdout_line in iter(popen.stdout.readline, ""):
             stdout_line = stdout_line.strip('\n')
+            print(stdout_line)
             lines.append(stdout_line)
             if args.verbose:
                 sys.stdout.write("%s\n" % stdout_line)

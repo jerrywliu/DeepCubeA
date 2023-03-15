@@ -127,7 +127,7 @@ class GBFS:
 def gbfs_test(num_states: int, back_max: int, env: Environment, heuristic_fn: Callable,
               max_solve_steps: Optional[int] = None):
     # get data
-    back_steps: List[int] = list(np.linspace(0, back_max, 30, dtype=int))
+    back_steps: List[int] = list(np.linspace(0, back_max, back_max, dtype=int))
     num_states_per_back_step: List[int] = misc_utils.split_evenly(num_states, len(back_steps))
 
     states: List[State] = []
