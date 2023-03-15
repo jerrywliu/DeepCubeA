@@ -1,0 +1,10 @@
+State: 0, SolnCost: 22.00, # Moves: 22, # Nodes Gen: 1,393,705, Time: 101.19
+State: 1, SolnCost: 23.00, # Moves: 23, # Nodes Gen: 14,521,465, Time: 1021.83
+State: 2, SolnCost: 19.00, # Moves: 19, # Nodes Gen: 69,265, Time: 4.85
+State: 3, SolnCost: 21.00, # Moves: 21, # Nodes Gen: 779,545, Time: 54.41
+State: 4, SolnCost: 22.00, # Moves: 22, # Nodes Gen: 7,316,665, Time: 504.93
+State: 5, SolnCost: 21.00, # Moves: 21, # Nodes Gen: 5,150,905, Time: 357.27
+State: 6, SolnCost: 22.00, # Moves: 22, # Nodes Gen: 13,663,585, Time: 968.82
+State: 7, SolnCost: 20.00, # Moves: 20, # Nodes Gen: 2,488,705, Time: 175.62
+State: 8, SolnCost: 22.00, # Moves: 22, # Nodes Gen: 9,651,865, Time: 682.31
+State: 9, SolnCost: 21.00, # Moves: 21, # Nodes Gen: 2,800,945, Time: 197.07
