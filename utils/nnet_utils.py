@@ -51,7 +51,7 @@ def make_batches(states_nnet: List[np.ndarray],  outputs: np.ndarray,
 
 
 def train_nnet(nnet: nn.Module, states_nnet: List[np.ndarray], outputs: np.ndarray, device: torch.device,
-               batch_size: int, num_itrs: int, train_itr: int, lr: float, lr_d: float, display: bool = True) -> float:
+               batch_size: int, num_itrs: int, train_itr: int, lr: np.float32, lr_d: np.float32, display: bool = True) -> np.float32:
     # optimization
     display_itrs = 100
     criterion = nn.MSELoss()
@@ -66,12 +66,12 @@ def train_nnet(nnet: nn.Module, states_nnet: List[np.ndarray], outputs: np.ndarr
     nnet.train()
     max_itrs: int = train_itr + num_itrs
 
-    last_loss: float = np.inf
+    last_loss: np.float32 = np.inf
     batch_idx: int = 0
     while train_itr < max_itrs:
         # zero the parameter gradients
         optimizer.zero_grad()
-        lr_itr: float = lr * (lr_d ** train_itr)
+        lr_itr: np.float32 = lr * (lr_d ** train_itr)
         for param_group in optimizer.param_groups:
             param_group['lr'] = lr_itr
 
@@ -134,7 +134,7 @@ def get_device() -> Tuple[torch.device, List[int], bool]:
 def load_nnet(model_file: str, nnet: nn.Module, device: torch.device = None) -> nn.Module:
     # get state dict
     if device is None:
-        state_dict = torch.load(model_file)
+        state_dict = torch.load(model_file, map_location=torch.device('cpu'))
     else:
         state_dict = torch.load(model_file, map_location=device)
 
@@ -269,7 +269,7 @@ def heuristic_fn_runner(heuristic_fn_input_queue: Queue, heuristic_fn_output_que
             break
 
         if all_zeros:
-            heuristics = np.zeros(states_nnet[0].shape[0], dtype=np.float)
+            heuristics = np.zeros(states_nnet[0].shape[0], dtype=np.float32)
         else:
             heuristics = heuristic_fn(states_nnet, is_nnet_format=True)
 

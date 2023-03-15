@@ -8,22 +8,22 @@ from torch.multiprocessing import Queue, get_context
 import time
 
 
-def gbfs_update(states: List[State], env: Environment, num_steps: int, heuristic_fn, eps_max: float):
-    eps: List[float] = list(np.random.rand(len(states)) * eps_max)
+def gbfs_update(states: List[State], env: Environment, num_steps: int, heuristic_fn, eps_max: np.float32):
+    eps: List[np.float32] = list(np.random.rand(len(states)) * eps_max)
 
     gbfs = GBFS(states, env, eps=eps)
     for _ in range(num_steps):
         gbfs.step(heuristic_fn)
 
-    trajs: List[List[Tuple[State, float]]] = gbfs.get_trajs()
+    trajs: List[List[Tuple[State, np.float32]]] = gbfs.get_trajs()
 
-    trajs_flat: List[Tuple[State, float]]
+    trajs_flat: List[Tuple[State, np.float32]]
     trajs_flat, _ = misc_utils.flatten(trajs)
 
     is_solved: np.ndarray = np.array(gbfs.get_is_solved())
 
     states_update: List = []
-    cost_to_go_update_l: List[float] = []
+    cost_to_go_update_l: List[np.float32] = []
     for traj in trajs_flat:
         states_update.append(traj[0])
         cost_to_go_update_l.append(traj[1])
@@ -34,7 +34,7 @@ def gbfs_update(states: List[State], env: Environment, num_steps: int, heuristic
 
 
 def astar_update(states: List[State], env: Environment, num_steps: int, heuristic_fn):
-    weights: List[float] = list(np.random.rand(len(states)))
+    weights: List[np.float32] = list(np.random.rand(len(states)))
     astar = AStar(states, env, heuristic_fn, weights)
     for _ in range(num_steps):
         astar.step(heuristic_fn, 1, verbose=False)
@@ -56,7 +56,7 @@ def astar_update(states: List[State], env: Environment, num_steps: int, heuristi
 
 def update_runner(num_states: int, back_max: int, update_batch_size: int, heur_fn_i_q, heur_fn_o_q,
                   proc_id: int, env: Environment, result_queue: Queue, num_steps: int, update_method: str,
-                  eps_max: float):
+                  eps_max: np.float32):
     heuristic_fn = nnet_utils.heuristic_fn_queue(heur_fn_i_q, heur_fn_o_q, proc_id, env)
 
     start_idx: int = 0
@@ -83,7 +83,7 @@ def update_runner(num_states: int, back_max: int, update_batch_size: int, heur_f
 
 class Updater:
     def __init__(self, env: Environment, num_states: int, back_max: int, heur_fn_i_q, heur_fn_o_qs,
-                 num_steps: int, update_method: str, update_batch_size: int = 1000, eps_max: float = 0.0):
+                 num_steps: int, update_method: str, update_batch_size: int = 1000, eps_max: np.float32 = 0.0):
         super().__init__()
         ctx = get_context("spawn")
         self.num_steps = num_steps
@@ -129,7 +129,7 @@ class Updater:
 
         none_count: int = 0
         result_count: int = 0
-        display_counts: List[int] = list(np.linspace(1, self.num_batches, 10, dtype=np.int))
+        display_counts: List[int] = list(np.linspace(1, self.num_batches, 10, dtype=int))
 
         start_time = time.time()
 

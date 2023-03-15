@@ -30,7 +30,7 @@ class LightsOut(Environment):
         self.dim = dim
         self.num_tiles = self.dim ** 2
 
-        self.move_matrix = np.zeros((self.num_tiles, 5), dtype=np.int64)
+        self.move_matrix = np.zeros((self.num_tiles, 5), dtype=int)
         for move in range(self.num_tiles):
             x_pos = int(np.floor(move / self.dim))
             y_pos = move % self.dim
@@ -42,7 +42,7 @@ class LightsOut(Environment):
 
             self.move_matrix[move] = [move, right, left, up, down]
 
-    def next_state(self, states: List[LOState], action: int) -> Tuple[List[LOState], List[float]]:
+    def next_state(self, states: List[LOState], action: int) -> Tuple[List[LOState], List[np.float32]]:
         states_np = np.stack([x.tiles for x in states], axis=0)
         states_next_np, transition_costs = self._move_np(states_np, [action] * states_np.shape[0])
 
@@ -138,7 +138,7 @@ class LightsOut(Environment):
         for move_idx in range(num_env_moves):
             # next state
             states_next_np: np.ndarray
-            tc_move: List[float]
+            tc_move: List[np.float32]
             states_next_np, tc_move = self._move_np(states_np, [move_idx] * states_np.shape[0])
 
             # transition cost
@@ -161,6 +161,6 @@ class LightsOut(Environment):
         move_matrix = self.move_matrix[actions]
         states_next_np[state_idxs, move_matrix] = (states_next_np[state_idxs, move_matrix] + 1) % 2
 
-        transition_costs: List[float] = [1.0 for _ in range(states_np.shape[0])]
+        transition_costs: List[np.float32] = [1.0 for _ in range(states_np.shape[0])]
 
         return states_next_np, transition_costs

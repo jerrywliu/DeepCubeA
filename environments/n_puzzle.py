@@ -35,7 +35,7 @@ class NPuzzle(Environment):
         if self.dim <= 15:
             self.dtype = np.uint8
         else:
-            self.dtype = np.int
+            self.dtype = int
 
         # Solved state
         self.goal_tiles: np.ndarray = np.concatenate((np.arange(1, self.dim * self.dim), [0])).astype(self.dtype)
@@ -43,7 +43,7 @@ class NPuzzle(Environment):
         # Next state ops
         self.swap_zero_idxs: np.ndarray = self._get_swap_zero_idxs(self.dim)
 
-    def next_state(self, states: List[NPuzzleState], action: int) -> Tuple[List[NPuzzleState], List[float]]:
+    def next_state(self, states: List[NPuzzleState], action: int) -> Tuple[List[NPuzzleState], List[np.float32]]:
         # initialize
         states_np = np.stack([x.tiles for x in states], axis=0)
         states_next_np: np.ndarray = states_np.copy()
@@ -157,7 +157,7 @@ class NPuzzle(Environment):
         for move_idx in range(num_env_moves):
             # next state
             states_next_np: np.ndarray
-            tc_move: List[float]
+            tc_move: List[np.float32]
             states_next_np, _, tc_move = self._move_np(states_np, z_idxs, move_idx)
 
             # transition cost
@@ -178,7 +178,7 @@ class NPuzzle(Environment):
                 for j in range(n):
                     z_idx = np.ravel_multi_index((i, j), (n, n))
 
-                    state = np.ones((n, n), dtype=np.int)
+                    state = np.ones((n, n), dtype=int)
                     state[i, j] = 0
 
                     is_eligible: bool = False
@@ -214,7 +214,7 @@ class NPuzzle(Environment):
         return swap_zero_idxs
 
     def _move_np(self, states_np: np.ndarray, z_idxs: np.array,
-                 action: int) -> Tuple[np.ndarray, np.array, List[float]]:
+                 action: int) -> Tuple[np.ndarray, np.array, List[np.float32]]:
         states_next_np: np.ndarray = states_np.copy()
 
         # get index to swap with zero
@@ -226,6 +226,6 @@ class NPuzzle(Environment):
         states_next_np[state_idxs, swap_z_idxs] = 0
 
         # transition costs
-        transition_costs: List[float] = [1.0 for _ in range(states_np.shape[0])]
+        transition_costs: List[np.float32] = [1.0 for _ in range(states_np.shape[0])]
 
         return states_next_np, swap_z_idxs, transition_costs
