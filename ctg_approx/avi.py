@@ -185,6 +185,8 @@ def main():
 
     # environment
     env: Environment = env_utils.get_environment(args_dict['env'], args_dict["inter_reward"], args_dict["add_actions"])
+    print(f"Intermediate reward setting: {args_dict['inter_reward']}")
+    print(f"Add actions setting: {args_dict['add_actions']}")
 
     # get device
     on_gpu: bool
