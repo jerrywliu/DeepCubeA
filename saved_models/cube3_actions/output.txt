@@ -23382,3 +23382,11 @@ Itr: 1209200, lr: 4.29E-04, loss: 0.33, targ_ctg: 11.19, nnet_ctg: 11.22, Time: 
 Itr: 1209300, lr: 4.29E-04, loss: 0.30, targ_ctg: 10.13, nnet_ctg: 10.14, Time: 3.64
 Itr: 1209400, lr: 4.29E-04, loss: 0.22, targ_ctg: 10.46, nnet_ctg: 10.54, Time: 3.66
 Solving 10000 states with GBFS with 15 steps
+Intermediate reward setting: uniform
+Add actions setting: True
+device: cuda:0, devices: [0, 1, 2, 3], on_gpu: True
+Updating cost-to-go with value iteration
+Intermediate reward setting: uniform
+Add actions setting: True
+device: cuda:0, devices: [0, 1, 2, 3], on_gpu: True
+Updating cost-to-go with value iteration

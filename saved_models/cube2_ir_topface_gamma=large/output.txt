@@ -1,0 +1,4 @@
+Intermediate reward setting: ir_topface
+Add actions setting: False
+device: cuda:0, devices: [0, 1, 2, 3], on_gpu: True
+Updating cost-to-go with value iteration
