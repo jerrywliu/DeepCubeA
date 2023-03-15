@@ -25,7 +25,7 @@ class Cube3State(State):
 
 
 class Cube3(Environment):
-    def __init__(self):
+    def __init__(self, intermediate_reward_name):
         super().__init__()
         self.dtype = np.uint8
         self.cube_len = 3
@@ -35,7 +35,9 @@ class Cube3(Environment):
         self.goal_colors: np.ndarray = np.arange(
             0, (self.cube_len ** 2) * 6, 1, dtype=self.dtype)
 
-        # TODO: add intermediate states
+        # add intermediate states
+        # uniform = 1 transition cost per move, TODO
+        self.intermediate_reward_name = intermediate_reward_name
 
         # Dictionaries for corners and edges with their corresponding tiles:
         self.corner_tiles = {
@@ -271,16 +273,18 @@ class Cube3(Environment):
         [ 0  1  2  2  5  8  8  7  6  6  3  0 20 23 26 47 50 53 29 32 35 38 41 44]
         '''
         states_next_np[:, self.rotate_idxs_new[action_str]] = states_np[:, self.rotate_idxs_old[action_str]]
-<<<<<<< HEAD
-        transition_costs: List[np.float32] = [1.0 for _ in range(states_np.shape[0])] #TODO update transition costs
-=======
 
-        # Transition cost for a turn is 1
-        # transition_costs: List[float] = [1.0]*states_np.shape[0] #TODO: maybe this needs to be changed
 
-        # Transition cost based on whether top is solved
-        transition_costs: List[float] = 1 + self.transition_costs_solvetop(states_next_np) - self.transition_costs_solvetop(states_np)
->>>>>>> origin
+        # Transition costs per move
+        if self.intermediate_reward_name == "uniform":
+            # Transition cost is 1
+            transition_costs: List[float] = [1.0]*states_np.shape[0]
+        elif self.intermediate_reward_name == "top1"
+            # Transition cost based on whether top is solved, trained 3/13
+            transition_costs: np.ndarray = 1 + self.transition_costs_solvetop(states_next_np) - self.transition_costs_solvetop(states_np)
+        else:
+            # Default to transition cost 1
+            transition_costs: List[float] = [1.0]*states_np.shape[0]
 
         return states_next_np, transition_costs
 

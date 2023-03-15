@@ -21,6 +21,7 @@ import shutil
 def parse_arguments(parser: ArgumentParser) -> Dict[str, Any]:
     # Environment
     parser.add_argument('--env', type=str, required=True, help="Environment")
+    parser.add_argument('--inter_reward', type=str, default="uniform", help="")
 
     # Debug
     parser.add_argument('--debug', action='store_true', default=False, help="")
@@ -182,7 +183,7 @@ def main():
         sys.stdout = data_utils.Logger(args_dict["output_save_loc"], "a")
 
     # environment
-    env: Environment = env_utils.get_environment(args_dict['env'])
+    env: Environment = env_utils.get_environment(args_dict['env'], args_Dict["inter_reward"])
 
     # get device
     on_gpu: bool
