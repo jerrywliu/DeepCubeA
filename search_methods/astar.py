@@ -472,6 +472,8 @@ def bwas_cpp(args, env: Environment, states: List[State], results_file: str):
     # Get state dimension
     if args.env.upper() == 'CUBE3':
         state_dim: int = 54
+    elif args.env.upper() == "CUBE2":
+        state_dim: int = 54
     elif args.env.upper() == 'PUZZLE15':
         state_dim: int = 16
     elif args.env.upper() == 'PUZZLE24':
