@@ -25,25 +25,17 @@ class Cube3State(State):
 
 
 class Cube3(Environment):
-    # Moves are in pairs: (move, -1) followed by (move, 1).
-    moves: List[str] = ["%s%i" % (f, n) for f in ['U', 'D', 'L', 'R', 'B', 'F'] for n in [-1, 1]]
-
     def __init__(self):
         super().__init__()
         self.dtype = np.uint8
         self.cube_len = 3
+        self.num_basic_moves = 12
 
         # solved state
-        self.goal_colors: np.ndarray = np.arange(0, (self.cube_len ** 2) * 6, 1, dtype=self.dtype)
+        self.goal_colors: np.ndarray = np.arange(
+            0, (self.cube_len ** 2) * 6, 1, dtype=self.dtype)
 
-        # get idxs changed for moves
-        self.rotate_idxs_new: Dict[str, np.ndarray]
-        self.rotate_idxs_old: Dict[str, np.ndarray]
-
-        self.adj_faces: Dict[int, np.ndarray]
-        self._get_adj()
-
-        self.rotate_idxs_new, self.rotate_idxs_old = self._compute_rotation_idxs(self.cube_len, self.moves)
+        # TODO: add intermediate states
 
         # Dictionaries for corners and edges with their corresponding tiles:
         self.corner_tiles = {
@@ -71,7 +63,36 @@ class Cube3(Environment):
             "GR": [28,52],
         }
 
-    def next_state(self, states: List[Cube3State], action: int) -> Tuple[List[Cube3State], List[float]]:
+        self.basic_moves = ['U', 'D', 'L', 'R', 'B', 'F']
+        algs = { 
+            "edge": ["F1", "F1", "U1", "L1", "R-1", "F1", "F1", "L-1", "R1", "U1", "F1", "F1"],
+            "corner": ["R1", "U-1", "L-1", "U1", "R-1", "U-1", "L1", "U1"],
+        }
+        # Dictionaries for subroutine expansions
+        self.subroutines = self._expand_subroutines(algs) 
+        #{
+        # "<subroutineName>_<face>_<index>_<1/-1>": ["F1", "F1", "U1", "L1", "R-1", "F1", "F1", "L-1", "R1", "U1", "F1", "F1"],
+        # edge_f0_r0_1: ["F1", "F1", "U1", "L1", "R-1", "F1", "F1", "L-1", "R1", "U1", "F1", "F1"],
+        # ...
+        #}
+
+        # Moves are in pairs: (move, -1) followed by (move, 1).
+        # 12 basic actions
+        self.moves: List[str] = ["%s%i" % (f, n) for f in self.basic_moves for n in [-1, 1]]
+        # add subroutines with orientation
+        self.moves += [sr for sr in self.subroutines]
+
+        # get idxs changed for moves
+        self.rotate_idxs_new: Dict[str, np.ndarray]
+        self.rotate_idxs_old: Dict[str, np.ndarray]
+
+        self.adj_faces: Dict[int, np.ndarray]
+        self._get_adj()
+
+        self.rotate_idxs_new, self.rotate_idxs_old = self._compute_rotation_idxs(
+            self.cube_len, self.moves)
+
+    def next_state(self, states: List[Cube3State], action: int) -> Tuple[List[Cube3State], List[np.float32]]:
         states_np = np.stack([x.colors for x in states], axis=0)
         states_next_np, transition_costs = self._move_np(states_np, action)
 
@@ -170,7 +191,7 @@ class Cube3(Environment):
         for move_idx in range(num_env_moves):
             # next state
             states_next_np: np.ndarray
-            tc_move: List[float]
+            tc_move: List[np.float32]
             states_next_np, tc_move = self._move_np(states_np, move_idx)
 
             # transition cost
@@ -187,10 +208,24 @@ class Cube3(Environment):
     def _move_np(self, states_np: np.ndarray, action: int):
         action_str: str = self.moves[action]
 
+        if action < self.num_basic_moves: # is a basic move
+            states_next_np, transition_costs = self._move_np_with_name(states_np, action_str)
+        else: # is a subroutine
+            steps = self.subroutines[action_str]
+            states_next_np = states_np.copy()
+            for step in steps:
+                states_next_np, transition_costs = self._move_np_with_name(states_next_np, step)
+
+        return states_next_np, transition_costs
+    
+    def _move_np_with_name(self, states_np: np.ndarray, action_str: str):
+        """
+        Used by _move_np to get next state with action as a string.
+        See _move_np for usage details.
+        """
         states_next_np: np.ndarray = states_np.copy()
         states_next_np[:, self.rotate_idxs_new[action_str]] = states_np[:, self.rotate_idxs_old[action_str]]
-
-        transition_costs: List[float] = [1.0 for _ in range(states_np.shape[0])] #TODO update transition costs
+        transition_costs: List[np.float32] = [1.0 for _ in range(states_np.shape[0])] #TODO update transition costs
 
         return states_next_np, transition_costs
 
@@ -209,14 +244,14 @@ class Cube3(Environment):
         rotate_idxs_new: Dict[str, np.ndarray] = dict()
         rotate_idxs_old: Dict[str, np.ndarray] = dict()
 
-        for move in moves:
+        for move in moves[:self.num_basic_moves]: # edited
             f: str = move[0]
             sign: int = int(move[1:])
 
             rotate_idxs_new[move] = np.array([], dtype=int)
             rotate_idxs_old[move] = np.array([], dtype=int)
 
-            colors = np.zeros((6, cube_len, cube_len), dtype=np.int64)
+            colors = np.zeros((6, cube_len, cube_len), dtype=int)
             colors_new = np.copy(colors)
 
             # WHITE:0, YELLOW:1, BLUE:2, GREEN:3, ORANGE: 4, RED: 5
@@ -278,3 +313,104 @@ class Cube3(Environment):
                     rotate_idxs_old[move] = np.concatenate((rotate_idxs_old[move], [flat_idx_old]))
 
         return rotate_idxs_new, rotate_idxs_old
+    
+    def _expand_subroutines(self, algs):
+        """
+        Take in a dictionary of algorithms and expand them across 24 cube orientations.
+        :param algs: Dictionary of algorithms to expand
+            - name_f0_r0_1: [move1, move2, ...]
+            - name face rotation
+        :return: Expanded dictionary of algorithms
+        """
+        subroutines = {} # Dictionary of subroutines
+        curr_subroutine = {} # Dictionary for current subroutine
+        rotations = 4
+        faces = 6
+
+        # Time complexity: O(alg * alg_length * 48)
+
+        # Go through each algorithm
+        for alg, moves in algs.items():
+            for move_str in moves:
+                # Get all rotations and faces
+                rotated_moves = self._rotate_move(move_str) # rotations
+                for j, rot_move in enumerate(rotated_moves):
+                    faces = self._face_move(rot_move) # faces
+                    for i, face in enumerate(faces):
+                        # Add to current subroutine
+                        alg_name = f"{alg}_f{i}_r{j}_1"
+                        if alg_name in curr_subroutine:
+                            curr_subroutine[alg_name].append(face)
+                        else:
+                            curr_subroutine[alg_name] = [face]
+            
+            # Get the inverse of all subroutines
+            for key, value in curr_subroutine.items():
+                inv_routine = key[:-1] + "-1"
+                # Inverse the moves, add to final subroutine dictionary
+                subroutines[inv_routine] = [self._invert_move(move) for move in value]
+            
+            # Add current subroutines
+            subroutines.update(curr_subroutine)
+        
+        return subroutines
+
+    def _rotate_move(self, move):
+        """
+        Map single move to all 4 possible z-axis rotations.
+        :param move: Move to rotate
+            - U, R, D, L, F, B: Face turns
+            - in 90 degree CW increments
+        :return: List of rotated moves
+        """
+        rotations = {
+            "U1" : ["U1", "R1", "D1", "L1"],
+            "U-1" : ["U-1", "R-1", "D-1", "L-1"],
+            "R1" : ["R1", "D1", "L1", "U1"],
+            "R-1" : ["R-1", "D-1", "L-1", "U-1"],
+            "D1" : ["D1", "L1", "U1", "R1"],
+            "D-1" : ["D-1", "L-1", "U-1", "R-1"],
+            "L1" : ["L1", "U1", "R1", "D1"],
+            "L-1" : ["L-1", "U-1", "R-1", "D-1"],
+            # These are the same
+            "F1" : ["F1", "F1", "F1", "F1"],
+            "F-1" : ["F-1", "F-1", "F-1", "F-1"],
+            "B1" : ["B1", "B1", "B1", "B1"],
+            "B-1" : ["B-1", "B-1", "B-1", "B-1"]
+        }
+        return rotations[move]
+    
+    def _face_move(self, move):
+        """
+        Map single move to all 6 faces.
+        :param move: Move to rotate
+            - U, D, L, R, F, B: Face turns
+            - Face orientation across y axis rotations 90 CW, then top and bottom
+        :return: List of rotated moves
+        """
+        faces = {
+            "U1" : ["U1", "U1", "U1", "U1", "F1", "B1"],
+            "U-1" : ["U-1", "U-1", "U-1", "U-1", "F-1", "B-1"],
+            "R1" : ["R1", "F1", "L1", "B1", "R1", "R1"],
+            "R-1" : ["R-1", "F-1", "L-1", "B-1", "R-1", "R-1"],
+            "D1" : ["D1", "D1", "D1", "D1", "B1", "F1"],
+            "D-1" : ["D-1", "D-1", "D-1", "D-1", "B-1", "F-1"],
+            "L1" : ["L1", "F1", "R1", "B1", "L1", "L1"],
+            "L-1" : ["L-1", "F-1", "R-1", "B-1", "L-1", "L-1"],
+            "F1" : ["F1", "R1", "B1", "L1", "D1", "U1"],
+            "F-1" : ["F-1", "R-1", "B-1", "L-1", "D-1", "U-1"],
+            "B1" : ["B1", "L1", "F1", "R1", "U1", "D1"],
+            "B-1" : ["B-1", "L-1", "F-1", "R-1", "U-1", "D-1"]
+        }
+        return faces[move]
+    
+    def _invert_move(self, move_str):
+        """
+        Invert a move_str e.g. "U1" -> "U-1"
+        :param move_str: Move to invert
+        :return: Inverted move
+        """
+        if len(move_str) == 2:
+            return move_str[:-1] + "-1"
+        else:
+            return move_str[:-2] + "1"
