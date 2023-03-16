@@ -58,7 +58,7 @@ def main():
 
     plt.xlabel("Epochs")
     plt.ylabel("Loss")
-    plt.title(f"Training Loss and Cube Complexity for {args['model']}")
+    plt.title(f"Training Loss for {args['model']}")
 
     plt.savefig(f"plots/[LOSS]{args['model']}.png")
 
