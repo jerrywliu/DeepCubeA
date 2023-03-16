@@ -160,12 +160,38 @@ def make_node_plot(result0_path, result1_path, num_samples=10):
     plt.savefig("plots/cube3_DCA_vs_DCA-IR_node.png")
 
 
+def make_step_plot(result0_path, result1_path, num_samples=10):
+    with open(result0_path + "results.pkl", 'rb') as f:
+        result0 = pickle.load(f)
+    with open(result1_path + "results.pkl", "rb") as f:
+        result1 = pickle.load(f)
+    
+    steps = []
+    
+    for result in [result0, result1]:
+        steps.append(result["solutions"][:num_samples])
+
+    mean0 = np.mean([len(x) for x in steps[0]])
+    mean1 = np.mean([len(x) for x in steps[1]])
+    std0 = np.std([len(x) for x in steps[0]])
+    std1 = np.std([len(x) for x in steps[1]])
+    
+    plt.bar([0, 1], [mean0, mean1],
+            tick_label=["DCA", "DCA-IR"],
+            yerr=[[std0, std1], [std0, std1]])
+    plt.title("Steps taken during A*-solve using DCA and DCA-IR")
+    plt.savefig("plots/cube3_DCA_vs_DCA-IR_step.png")
+
+
 def main(result0_path, result1_path, num_samples=10, task="all"):
-    if task == "all" or task == "trajectory_plot":
+    if task == "all" or task == "trajectory":
         make_trajectory_plot(result0_path, result1_path, num_samples)
-    if task == "all" or task == "other_plots":
+    if task == "all" or task == "time":
         make_time_plot(result0_path, result1_path, num_samples)
+    if task == "all" or task == "node":
         make_node_plot(result0_path, result1_path, num_samples)
+    if task == "all" or task == "step":
+        make_step_plot(result0_path, result1_path, num_samples)
 
 
 if __name__ == "__main__":
@@ -183,6 +209,6 @@ if __name__ == "__main__":
         result0_path = str("results/cube3/")
         result1_path = str("results/cube3_intermediate_reward/")
         num_samples = 10
-        task = "other_plots" #"all"
+        task = "step" #"all"
     
     main(result0_path, result1_path, num_samples, task)
