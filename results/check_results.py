@@ -76,11 +76,13 @@ def make_trajectory_plot(result0_path, result1_path, result2_path, num_samples=1
         result0 = pickle.load(f)
     with open(result1_path + "results.pkl", "rb") as f:
         result1 = pickle.load(f)
+    with open(result2_path + "results.pkl", "rb") as f:
+        result2 = pickle.load(f)
 
     steps = []
     trajs = []
 
-    for result in [result0, result1]:
+    for result in [result0, result1, result2]:
         steps.append(result["solutions"][:num_samples])
         trajs.append([
             [state.colors for state in traj]
@@ -107,7 +109,7 @@ def make_trajectory_plot(result0_path, result1_path, result2_path, num_samples=1
                 traj[j] = np.reshape(traj[j][MAP], (6, 3, 3))
                 #traj[j] = np.transpose(traj[j], axes=(0, 2, 1))
     
-    for traj, result_path in zip(trajs, [result0_path, result1_path]):
+    for traj, result_path in zip(trajs, [result0_path, result1_path, result2_path]):
         for sample_idx in tqdm(range(len(traj))):
             plot(traj, sample_idx, result_path)
             # Combine images generated
@@ -193,7 +195,7 @@ def make_step_plot(result0_path, result1_path, result2_path, num_samples=10):
 
 def main(result0_path, result1_path, result2_path, num_samples=10, task="all"):
     if task == "all" or task == "trajectory":
-        make_trajectory_plot(result0_path, result1_path, num_samples)
+        make_trajectory_plot(result0_path, result1_path, result2_path, num_samples)
     if task == "all" or task == "time":
         make_time_plot(result0_path, result1_path, num_samples)
     if task == "all" or task == "node":
@@ -218,6 +220,6 @@ if __name__ == "__main__":
         result1_path = str("results/cube2_irnext_gamma=mid/")
         result2_path = str("results/cube2_irnext_gamma=1/")
         num_samples = 10
-        task = "node" #"all"
+        task = "trajectory" # "all"
     
     main(result0_path, result1_path, result2_path, num_samples, task)
