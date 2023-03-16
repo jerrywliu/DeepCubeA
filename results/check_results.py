@@ -71,9 +71,7 @@ def combine_imgs(result_path, idx, traj_len):
     fig.savefig(save_path)
     plt.close()
 
-
-
-def main(result0_path, result1_path, num_samples=10):
+def make_trajectory_plot(result0_path, result1_path, num_samples=10):
     with open(result0_path + "results.pkl", 'rb') as f:
         result0 = pickle.load(f)
     with open(result1_path + "results.pkl", "rb") as f:
@@ -81,8 +79,6 @@ def main(result0_path, result1_path, num_samples=10):
 
     steps = []
     trajs = []
-    times = []
-    num_nodes = []
 
     for result in [result0, result1]:
         steps.append(result["solutions"][:num_samples])
@@ -90,10 +86,6 @@ def main(result0_path, result1_path, num_samples=10):
             [state.colors for state in traj]
             for traj in result["paths"][:num_samples]
         ])
-        times.append(result["times"][:num_samples])
-        num_nodes.append(result["num_nodes_generated"][:num_samples])
-        #print(trajs[-1][-1][-1])
-        #print(np.reshape(trajs[-1][-1][-1], (6, 3, 3)))
 
         # convert indexed colors to color map
         for traj in trajs[-1]:
@@ -122,19 +114,75 @@ def main(result0_path, result1_path, num_samples=10):
             combine_imgs(result_path, sample_idx, len(traj[sample_idx]))
 
 
+def make_time_plot(result0_path, result1_path, num_samples=10):
+    with open(result0_path + "results.pkl", 'rb') as f:
+        result0 = pickle.load(f)
+    with open(result1_path + "results.pkl", "rb") as f:
+        result1 = pickle.load(f)
+    
+    times = []
+    
+    for result in [result0, result1]:
+        times.append(result["times"][:num_samples])
+    
+    mean0 = np.mean(times[0])
+    mean1 = np.mean(times[1])
+    std0 = np.std(times[0])
+    std1 = np.std(times[1])
+    
+    plt.bar([0, 1], [mean0, mean1],
+            tick_label=["DCA", "DCA-IR"],
+            yerr=[[std0, std1], [std0, std1]])
+    plt.title("Time A*-solve takes using DCA and DCA-IR")
+    plt.savefig("plots/cube3_DCA_vs_DCA-IR_time.png")
+
+
+def make_node_plot(result0_path, result1_path, num_samples=10):
+    with open(result0_path + "results.pkl", 'rb') as f:
+        result0 = pickle.load(f)
+    with open(result1_path + "results.pkl", "rb") as f:
+        result1 = pickle.load(f)
+    
+    num_nodes = []
+    
+    for result in [result0, result1]:
+        num_nodes.append(result["num_nodes_generated"][:num_samples])
+
+    mean0 = np.mean(num_nodes[0])
+    mean1 = np.mean(num_nodes[1])
+    std0 = np.std(num_nodes[0])
+    std1 = np.std(num_nodes[1])
+    
+    plt.bar([0, 1], [mean0, mean1],
+            tick_label=["DCA", "DCA-IR"],
+            yerr=[[std0, std1], [std0, std1]])
+    plt.title("Nodes explored during A*-solve using DCA and DCA-IR")
+    plt.savefig("plots/cube3_DCA_vs_DCA-IR_node.png")
+
+
+def main(result0_path, result1_path, num_samples=10, task="all"):
+    if task == "all" or task == "trajectory_plot":
+        make_trajectory_plot(result0_path, result1_path, num_samples)
+    if task == "all" or task == "other_plots":
+        make_time_plot(result0_path, result1_path, num_samples)
+        make_node_plot(result0_path, result1_path, num_samples)
+
+
 if __name__ == "__main__":
-    if len(sys.argv) != 4 and len(sys.argv) != 1:
+    if len(sys.argv) != 5 and len(sys.argv) != 1:
         print("Usage:")
         print("  python dechk_results.py <result0 pickle path> \
-<result1 pickle path> <number of samples to check>")
+<result1 pickle path> <number of samples to check> <trajectory_plot/other_plots>")
 
     if len(sys.argv) == 4:
         result0_path = str(sys.argv[1])
         result1_path = str(sys.argv[2])
         num_samples = int(sys.argv[3])
+        task = str(sys.argv[4])
     else:
         result0_path = str("results/cube3/")
         result1_path = str("results/cube3_intermediate_reward/")
         num_samples = 10
+        task = "other_plots" #"all"
     
-    main(result0_path, result1_path, num_samples)
+    main(result0_path, result1_path, num_samples, task)
