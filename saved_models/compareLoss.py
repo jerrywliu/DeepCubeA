@@ -33,7 +33,14 @@ def main():
     
     plt.figure(figsize=(15,5))
 
-    for model in models:
+    labels = [
+        "cube2_DCA_gamma=0",
+        "cube2_LBL_gamma=1",
+        "cube2_LBL_gamma=0.9",
+        "cube2_LBL_gamma=0.5",
+    ]
+
+    for i, model in enumerate(models):
         steps, losses = readLoss(model)
 
                 
@@ -44,21 +51,10 @@ def main():
         losses = np.array(losses)
         maxStep = steps.max()
 
-        plt.plot(iters, losses, label=model)
+        plt.plot(iters, losses, label=labels[i])
 
-        # Each step size
-        for i in range(1, maxStep+1):
-            stepIdxs = np.where(steps == i)
 
-            # If only 1 index point
-            #plt.plot(iters[stepIdxs], losses[stepIdxs], 'o', label=f"{i} moves")
-    
-
-    # Move plot a bit to the left to make room for legend
-    plt.subplots_adjust(left=0.1)
-    plt.subplots_adjust(right=0.82)
-    # Place legend outside of plot
-    plt.legend(bbox_to_anchor=(1.02, 1), loc='upper left', title="Scramble Complexity", borderaxespad=0.)
+    plt.legend(loc="upper right")
 
     plt.xlabel("Epochs")
     plt.ylabel("Loss")
