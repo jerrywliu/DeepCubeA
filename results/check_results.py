@@ -1,4 +1,6 @@
+from glob import glob
 import matplotlib
+import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import numpy as np
 import os
@@ -14,10 +16,13 @@ COLOR_MAP = np.array([
     [255, 165, 0], # orange
     [255, 255, 0], # yellow
 ])
+FLOWCHART_WIDTH = 8
+
 
 def plot(traj, sample_id, result_path):
     fig, axes = plt.subplots(nrows=3, ncols=4, sharex=True, sharey=True)
     fig.set_facecolor("grey")
+    #fig.set_dpi(100)
     for x in axes:
         for y in x:
             y.axis("off")
@@ -31,10 +36,39 @@ def plot(traj, sample_id, result_path):
         axes[1, 3].imshow(COLOR_MAP[traj[sample_id][k][4]])
         axes[2, 1].imshow(COLOR_MAP[traj[sample_id][k][5]])
 
-        save_dir = result_path + "sample_traj/{}".format(sample_id)
+        save_dir = result_path + "sample_traj/{}/".format(sample_id)
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
-        fig.savefig(save_dir + "/{}.png".format(k))
+        fig.savefig(save_dir + "{}.png".format(k))
+
+
+def combine_imgs(result_path, idx, traj_len):
+    load_dir = result_path + "sample_traj/{}/".format(idx)
+    height = int((traj_len - 1) / FLOWCHART_WIDTH) + 1
+    
+    fig, axes = plt.subplots(nrows=height, ncols=FLOWCHART_WIDTH, sharex=True, sharey=True)
+    fig.set_facecolor("grey")
+    fig.set_dpi(600)
+    fig.set_size_inches(8, 3)
+    for x in axes:
+        for y in x:
+            y.axis("off")
+    plt.subplots_adjust(wspace=0, hspace=0)
+
+    for i in range(height):
+        for j in range(FLOWCHART_WIDTH):
+            state_idx = i*FLOWCHART_WIDTH + j
+            if state_idx >= traj_len:
+                break
+            path = load_dir + "{}.png".format(state_idx)
+
+            img = mpimg.imread(path)
+            axes[i, j].imshow(img)
+
+    save_path = result_path + "sample_traj/full_{}.png".format(idx)
+    fig.savefig(save_path)
+
+
 
 def main(result0_path, result1_path, num_samples=10):
     with open(result0_path + "results.pkl", 'rb') as f:
@@ -78,6 +112,9 @@ def main(result0_path, result1_path, num_samples=10):
     for traj, result_path in zip(trajs, [result0_path, result1_path]):
         for sample_idx in tqdm(range(len(traj))):
             plot(traj, sample_idx, result_path)
+            # Combine images generated
+            combine_imgs(result_path, sample_idx, len(traj[sample_idx]))
+
 
 if __name__ == "__main__":
     if len(sys.argv) != 4 and len(sys.argv) != 1:
