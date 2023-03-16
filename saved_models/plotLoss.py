@@ -35,15 +35,20 @@ def main():
     maxStep = steps.max()
 
     plt.figure(figsize=(15,5))
+    plt.plot(iters, losses, color="black", label="All moves")
     # Each step size
     for i in range(1, maxStep+1):
         stepIdxs = np.where(steps == i)
 
         # If only 1 index point
+        '''
         if (len(stepIdxs[0]) == 1):
             plt.plot(iters[stepIdxs], losses[stepIdxs], '-o', label=f"{i} moves")
         else:
             plt.plot(iters[stepIdxs], losses[stepIdxs], label=f"{i} moves")
+        '''
+        plt.plot(iters[stepIdxs], losses[stepIdxs], 'o', label=f"{i} moves")
+    
 
     # Move plot a bit to the left to make room for legend
     plt.subplots_adjust(left=0.1)
