@@ -51,7 +51,7 @@ def main():
 
     plt.figure(figsize=(15,5))
 
-    for i in range(5, maxBackstep, 5):
+    for i in range(1, maxBackstep, 1):
         plt.plot(epochIterator, backstep_2d_np[i], label=f"{i} moves")
 
     # Move plot a bit to the left to make room for legend
