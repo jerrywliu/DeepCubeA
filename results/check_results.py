@@ -137,27 +137,31 @@ def make_time_plot(result0_path, result1_path, num_samples=10):
     plt.savefig("plots/cube3_DCA_vs_DCA-IR_time.png")
 
 
-def make_node_plot(result0_path, result1_path, num_samples=10):
+def make_node_plot(result0_path, result1_path, result2_path, num_samples=10):
     with open(result0_path + "results.pkl", 'rb') as f:
         result0 = pickle.load(f)
     with open(result1_path + "results.pkl", "rb") as f:
         result1 = pickle.load(f)
+    with open(result2_path + "results.pkl", "rb") as f:
+        result2 = pickle.load(f)
     
     num_nodes = []
     
-    for result in [result0, result1]:
+    for result in [result0, result1, result2]:
         num_nodes.append(result["num_nodes_generated"][:num_samples])
 
     mean0 = np.mean(num_nodes[0])
     mean1 = np.mean(num_nodes[1])
+    mean2 = np.mean(num_nodes[2])
     std0 = np.std(num_nodes[0])
     std1 = np.std(num_nodes[1])
+    std2 = np.std(num_nodes[2])
     
-    plt.bar([0, 1], [mean0, mean1],
-            tick_label=["DCA", "DCA-IR"],
-            yerr=[[std0, std1], [std0, std1]])
-    plt.title("Nodes explored during A*-solve using DCA and DCA-IR")
-    plt.savefig("plots/cube3_DCA_vs_DCA-IR_node.png")
+    plt.bar([0, 1, 2], [mean0, mean1, mean2],
+            tick_label=["DCA", "DCA-IR-gamma=0.5", "DCA-IR-gamma=1"],
+            yerr=[[std0, std1, std2], [std0, std1, std2]])
+    plt.title("Cube2: Nodes explored during A*-solve using DCA and DCA-IR")
+    plt.savefig("plots/cube2_DCA_vs_DCA-IR_node.png")
 
 
 def make_step_plot(result0_path, result1_path, num_samples=10):
@@ -180,18 +184,18 @@ def make_step_plot(result0_path, result1_path, num_samples=10):
             tick_label=["DCA", "DCA-IR"],
             yerr=[[std0, std1], [std0, std1]])
     plt.title("Steps taken during A*-solve using DCA and DCA-IR")
-    plt.savefig("plots/cube3_DCA_vs_DCA-IR_step.png")
+    plt.savefig("plots/cube2_DCA_vs_DCA-IR_step.png")
 
 
-def main(result0_path, result1_path, num_samples=10, task="all"):
+def main(result0_path, result1_path, result2_path, num_samples=10, task="all"):
     if task == "all" or task == "trajectory":
         make_trajectory_plot(result0_path, result1_path, num_samples)
     if task == "all" or task == "time":
         make_time_plot(result0_path, result1_path, num_samples)
     if task == "all" or task == "node":
-        make_node_plot(result0_path, result1_path, num_samples)
+        make_node_plot(result0_path, result1_path, result2_path, num_samples)
     if task == "all" or task == "step":
-        make_step_plot(result0_path, result1_path, num_samples)
+        make_step_plot(result0_path, result1_path, result2_path, num_samples)
 
 
 if __name__ == "__main__":
@@ -206,9 +210,10 @@ if __name__ == "__main__":
         num_samples = int(sys.argv[3])
         task = str(sys.argv[4])
     else:
-        result0_path = str("results/cube3/")
-        result1_path = str("results/cube3_intermediate_reward/")
+        result0_path = str("results/cube2_deepcubea/")
+        result1_path = str("results/cube2_irnext_gamma=mid/")
+        result2_path = str("results/cube2_irnext_gamma=1/")
         num_samples = 10
-        task = "step" #"all"
+        task = "node" #"all"
     
-    main(result0_path, result1_path, num_samples, task)
+    main(result0_path, result1_path, result2_path, num_samples, task)
