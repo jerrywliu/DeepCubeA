@@ -33,8 +33,8 @@ def plot(traj, sample_id, result_path):
         axes[0, 1].imshow(COLOR_MAP[traj[sample_id][k][0]])
         axes[1, 0].imshow(COLOR_MAP[traj[sample_id][k][1]])
         axes[1, 1].imshow(COLOR_MAP[traj[sample_id][k][2]])
-        axes[1, 2].imshow(COLOR_MAP[traj[sample_id][k][3]]) # WARNING: changed 
-        axes[1, 3].imshow(COLOR_MAP[traj[sample_id][k][4]]) # WARNING: changed
+        axes[1, 2].imshow(COLOR_MAP[traj[sample_id][k][3]])
+        axes[1, 3].imshow(COLOR_MAP[traj[sample_id][k][4]])
         axes[2, 1].imshow(COLOR_MAP[traj[sample_id][k][5]])
 
         save_dir = result_path + "sample_traj/{}/".format(sample_id)
@@ -71,7 +71,7 @@ def combine_imgs(result_path, idx, traj_len):
     fig.savefig(save_path)
     plt.close()
 
-def make_trajectory_plot(result0_path, result1_path, num_samples=10):
+def make_trajectory_plot(result0_path, result1_path, result2_path, num_samples=10):
     with open(result0_path + "results.pkl", 'rb') as f:
         result0 = pickle.load(f)
     with open(result1_path + "results.pkl", "rb") as f:
@@ -159,7 +159,7 @@ def make_node_plot(result0_path, result1_path, result2_path, num_samples=10):
     
     plt.bar([0, 1, 2], [mean0, mean1, mean2],
             tick_label=["DCA", "DCA-IR-gamma=0.5", "DCA-IR-gamma=1"],
-            yerr=[[std0, std1, std2], [std0, std1, std2]])
+            yerr=[[std0, std1, std2], [std0, std1, std2]], color='#ff7f0e')
     plt.title("Cube2: Nodes explored during A*-solve using DCA and DCA-IR")
     plt.savefig("plots/cube2_DCA_vs_DCA-IR_node.png")
 
@@ -205,7 +205,7 @@ def main(result0_path, result1_path, result2_path, num_samples=10, task="all"):
 if __name__ == "__main__":
     if len(sys.argv) != 5 and len(sys.argv) != 1:
         print("Usage:")
-        print("  python dechk_results.py <result0 pickle path> \
+        print("  python check_results.py <result0 pickle path> \
 <result1 pickle path> <number of samples to check> <trajectory_plot/other_plots>")
 
     if len(sys.argv) == 4:
@@ -218,6 +218,6 @@ if __name__ == "__main__":
         result1_path = str("results/cube2_irnext_gamma=mid/")
         result2_path = str("results/cube2_irnext_gamma=1/")
         num_samples = 10
-        task = "step" #"all"
+        task = "node" #"all"
     
     main(result0_path, result1_path, result2_path, num_samples, task)
