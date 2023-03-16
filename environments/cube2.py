@@ -228,7 +228,7 @@ class Cube2(Environment):
         return states_exp, tc_l
 
     # For fully solved top face, transition = 1-gamma, for completely unsolved top face, transition = 1
-    def transition_costs_solvetop(self, states_np: np.ndarray, gamma: int = 0.9) -> np.ndarray:
+    def transition_costs_solvetoplayer(self, states_np: np.ndarray, gamma: int = 0.9) -> np.ndarray:
         corner_names = ["WBO", "WBR", "WGO", "WGR"]
         edge_names = ["WB", "WG", "WO", "WR"]
         # Lists of corners and edges to verify
@@ -241,6 +241,17 @@ class Cube2(Environment):
         corner_is_equal = np.equal(states_np[:, corner_tiles_to_check], np.expand_dims(self.goal_colors[corner_tiles_to_check], 0))
         edge_is_equal = np.equal(states_np[:, edge_tiles_to_check], np.expand_dims(self.goal_colors[edge_tiles_to_check], 0))
         return gamma/2*(np.sum(corner_is_equal, axis=1)/12 + np.sum(edge_is_equal, axis=1)/8)
+
+    def transition_costs_solvetopface(self, states_np: np.ndarray, gamma: int = 0.9) -> np.ndarray:
+        valid_tiles = [0,1,2,3,5,6,7,8]
+        def count_solved_top(s):
+            count = 0
+            for si in s:
+                if si in valid_tiles:
+                    count += 1
+            return count/len(valid_tiles)
+
+        return gamma*np.apply_along_axis(count_solved_top, 1, states_np)
 
     def _move_np(self, states_np: np.ndarray, action: int):
         """
@@ -288,7 +299,11 @@ class Cube2(Environment):
             transition_costs: List[float] = [1.0]*states_np.shape[0]
         elif self.intermediate_reward_name == "top1":
             # Transition cost based on whether top is solved, trained 3/13
-            transition_costs: np.ndarray = 1 + self.transition_costs_solvetop(states_next_np) - self.transition_costs_solvetop(states_np)
+            transition_costs: np.ndarray = 1 + self.transition_costs_solvetoplayer(states_next_np) - self.transition_costs_solvetoplayer(states_np)
+        elif self.intermediate_reward_name == "irnext":
+            transition_costs: np.ndarray = 1 - self.transition_costs_solvetoplayer(states_next_np, 1) #TODO change gamma
+        elif self.intermediate_reward_name == "ir_topface":
+            transition_costs: np.ndarray = 1 - self.transition_costs_solvetopface(states_next_np, 0.9) #TODO change gamma
         else:
             # Default to transition cost 1
             transition_costs: List[float] = [1.0]*states_np.shape[0]

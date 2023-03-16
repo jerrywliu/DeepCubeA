@@ -259,6 +259,60 @@ int Cube3::getNumActions() const {
 	return(this->numActions);
 }
 
+
+/*** Cube2 ***/
+constexpr int Cube2::rotateIdxs_old[12][24];
+constexpr int Cube2::rotateIdxs_new[12][24];
+
+Cube2::Cube2(std::vector<uint8_t> state) {
+	this->state = state;
+}
+
+Cube2::~Cube2() {}
+
+
+Cube2 *Cube2::getNextState(const int action) const {
+	std::vector<uint8_t> newState(this->state);
+	
+	for (int i=0; i<24; i++) {
+		const int oldIdx = this->rotateIdxs_old[action][i];
+		const int newIdx = this->rotateIdxs_new[action][i];
+		newState[newIdx] = this->state[oldIdx];
+	}
+
+	Cube2 *nextState = new Cube2(newState);
+
+	return(nextState);
+}
+
+std::vector<Environment*> Cube2::getNextStates() const {
+	std::vector<Environment*> nextStates;
+	for (int i=0; i<numActions; i++) {
+		nextStates.push_back(this->getNextState(i));
+	}
+
+	return(nextStates);
+}
+
+std::vector<uint8_t> Cube2::getState() const {
+	return(this->state);
+}
+
+bool Cube2::isSolved() const {
+	bool isSolved = true;
+	for (int i=0; i<54; i++) {
+		if (i % 9 == 0 || i % 9 == 2 || i % 9 == 6 || i % 9 == 8) {
+			isSolved = isSolved & (this->state[i] == i);
+		}
+	}
+
+	return(isSolved);
+}
+
+int Cube2::getNumActions() const {
+	return(this->numActions);
+}
+
 /*** Cube4 ***/
 std::vector<int> U0_n1 = {3, 7, 11, 15, 15, 14, 13, 12, 12, 8, 4, 0, 0, 1, 2, 3, 6, 10, 10, 9, 9, 5, 5, 6, 67, 71, 75, 79, 35, 39, 43, 47, 83, 87, 91, 95, 51, 55, 59, 63};
 std::vector<int> U0_1 = {12, 8, 4, 0, 0, 1, 2, 3, 3, 7, 11, 15, 15, 14, 13, 12, 9, 5, 5, 6, 6, 10, 10, 9, 83, 87, 91, 95, 51, 55, 59, 63, 67, 71, 75, 79, 35, 39, 43, 47};
