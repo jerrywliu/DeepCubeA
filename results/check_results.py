@@ -164,26 +164,30 @@ def make_node_plot(result0_path, result1_path, result2_path, num_samples=10):
     plt.savefig("plots/cube2_DCA_vs_DCA-IR_node.png")
 
 
-def make_step_plot(result0_path, result1_path, num_samples=10):
+def make_step_plot(result0_path, result1_path, result2_path, num_samples=10):
     with open(result0_path + "results.pkl", 'rb') as f:
         result0 = pickle.load(f)
     with open(result1_path + "results.pkl", "rb") as f:
         result1 = pickle.load(f)
+    with open(result2_path + "results.pkl", "rb") as f:
+        result2 = pickle.load(f)
     
     steps = []
     
-    for result in [result0, result1]:
+    for result in [result0, result1, result2]:
         steps.append(result["solutions"][:num_samples])
 
     mean0 = np.mean([len(x) for x in steps[0]])
     mean1 = np.mean([len(x) for x in steps[1]])
+    mean2 = np.mean([len(x) for x in steps[2]])
     std0 = np.std([len(x) for x in steps[0]])
     std1 = np.std([len(x) for x in steps[1]])
+    std2 = np.std([len(x) for x in steps[2]])
     
-    plt.bar([0, 1], [mean0, mean1],
-            tick_label=["DCA", "DCA-IR"],
-            yerr=[[std0, std1], [std0, std1]])
-    plt.title("Steps taken during A*-solve using DCA and DCA-IR")
+    plt.bar([0, 1, 2], [mean0, mean1, mean2],
+            tick_label=["DCA", "DCA-IR-gamma=0.5", "DCA-IR-gamma=1"],
+            yerr=[[std0, std1, std2], [std0, std1, std2]])
+    plt.title("Cube2: Steps taken during A*-solve using DCA and DCA-IR")
     plt.savefig("plots/cube2_DCA_vs_DCA-IR_step.png")
 
 
@@ -214,6 +218,6 @@ if __name__ == "__main__":
         result1_path = str("results/cube2_irnext_gamma=mid/")
         result2_path = str("results/cube2_irnext_gamma=1/")
         num_samples = 10
-        task = "node" #"all"
+        task = "step" #"all"
     
     main(result0_path, result1_path, result2_path, num_samples, task)
