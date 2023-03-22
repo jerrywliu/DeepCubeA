@@ -230,20 +230,15 @@ class Cube2(Environment):
     # For fully solved top face, transition = 1-gamma, for completely unsolved top face, transition = 1
     def transition_costs_solvetoplayer(self, states_np: np.ndarray, gamma: int = 0.9) -> np.ndarray:
         corner_names = ["WBO", "WBR", "WGO", "WGR"]
-        edge_names = ["WB", "WG", "WO", "WR"]
-        # Lists of corners and edges to verify
+        # Lists of corners to verify
         corner_tiles_to_check = []
-        edge_tiles_to_check = []
         for corner_name in corner_names:
             corner_tiles_to_check += self.corner_tiles[corner_name]
-        for edge_name in edge_names:
-            edge_tiles_to_check += self.edge_tiles[edge_name]
         corner_is_equal = np.equal(states_np[:, corner_tiles_to_check], np.expand_dims(self.goal_colors[corner_tiles_to_check], 0))
-        edge_is_equal = np.equal(states_np[:, edge_tiles_to_check], np.expand_dims(self.goal_colors[edge_tiles_to_check], 0))
-        return gamma/2*(np.sum(corner_is_equal, axis=1)/12 + np.sum(edge_is_equal, axis=1)/8)
+        return gamma*(np.sum(corner_is_equal, axis=1)/12)
 
     def transition_costs_solvetopface(self, states_np: np.ndarray, gamma: int = 0.9) -> np.ndarray:
-        valid_tiles = [0,1,2,3,5,6,7,8]
+        valid_tiles = [0,2,6,8]
         def count_solved_top(s):
             count = 0
             for si in s:
@@ -301,7 +296,7 @@ class Cube2(Environment):
             # Transition cost based on whether top is solved, trained 3/13
             transition_costs: np.ndarray = 1 + self.transition_costs_solvetoplayer(states_next_np) - self.transition_costs_solvetoplayer(states_np)
         elif self.intermediate_reward_name == "irnext":
-            transition_costs: np.ndarray = 1 - self.transition_costs_solvetoplayer(states_next_np, 1) #TODO change gamma
+            transition_costs: np.ndarray = 1 - self.transition_costs_solvetoplayer(states_next_np, 0.7) #TODO change gamma
         elif self.intermediate_reward_name == "ir_topface":
             transition_costs: np.ndarray = 1 - self.transition_costs_solvetopface(states_next_np, 0.9) #TODO change gamma
         else:
