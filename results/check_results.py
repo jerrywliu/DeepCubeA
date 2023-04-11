@@ -50,8 +50,8 @@ def combine_imgs(result_path, idx, traj_len):
     
     fig, axes = plt.subplots(nrows=height, ncols=FLOWCHART_WIDTH, sharex=True, sharey=True)
     fig.set_facecolor("grey")
-    fig.set_dpi(600)
-    fig.set_size_inches(8, 3)
+    fig.set_dpi(1200)
+    fig.set_size_inches(16, 6)
     for x in axes:
         for y in x:
             y.axis("off")
@@ -216,7 +216,7 @@ if __name__ == "__main__":
         num_samples = int(sys.argv[3])
         task = str(sys.argv[4])
     else:
-        result0_path = str("results/cube2_deepcubea/")
+        result0_path = str("results/cube2_irnext_gamma=large/")
         result1_path = str("results/cube2_irnext_gamma=mid/")
         result2_path = str("results/cube2_irnext_gamma=1/")
         num_samples = 10
